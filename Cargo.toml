@@ -6,8 +6,17 @@ license = "MIT"
 description = "Rust library for BleuIO"
 readme = "README.md"
 repository = "https://github.com/Yohannfra/bleuio"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+include = [
+  "src/**/*",
+  "Cargo.toml",
+  "LICENSE*",
+  "README.md",
+  "examples/**/*"
+]
 
 [dependencies]
 serial = "0.4.0"
+
+[[example]]
+name = "basic_at"
+path = "examples/basic_at.rs"
