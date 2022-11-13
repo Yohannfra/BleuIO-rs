@@ -1,7 +1,13 @@
 use bleuio::BleuIO;
 
 fn main() {
-    let port: String = std::env::args().nth(1).expect("no port given");
-    let mut b = BleuIO::new(&port, 1000, false);
-    b.connect().unwrap();
+    let port: String = std::env::args().nth(1).expect("USAGE: ./basic_at port");
+
+    let mut bleuio_con = BleuIO::new(&port, 1000, false);
+
+    bleuio_con.connect().unwrap();
+
+    println!("Sending command 'AT'");
+    let ret = bleuio_con.at().unwrap();
+    println!("Read: {}", ret);
 }

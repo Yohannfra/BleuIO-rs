@@ -2,3 +2,6 @@
 /Cargo.lock
 *.py
 bleuio
+
+# examples binaries
+basic_at
