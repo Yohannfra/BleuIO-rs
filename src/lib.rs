@@ -17,7 +17,7 @@ pub struct BleuIO {
     pub timeout: u64,
     pub debug: bool,
 
-    is_running: Arc<AtomicBool>,
+    threads_running: Arc<AtomicBool>,
     rx_thread: Option<thread::JoinHandle<()>>,
     tx_thread: Option<thread::JoinHandle<()>>,
 }
@@ -30,7 +30,7 @@ impl BleuIO {
             baudrate: serial::Baud57600,
             timeout,
             debug,
-            is_running: Arc::new(AtomicBool::new(false)),
+            threads_running: Arc::new(AtomicBool::new(false)),
             rx_thread: None,
             tx_thread: None,
         }
@@ -53,38 +53,37 @@ impl BleuIO {
     }
 
     pub fn start_daemon(&mut self) -> Result<(), String> {
-        if self.is_running.load(Ordering::Relaxed) {
+        if self.threads_running.load(Ordering::Relaxed) {
             return Err("Thread already started".to_owned());
         }
 
-        self.is_running.store(true, Ordering::Relaxed);
+        self.threads_running.store(true, Ordering::Relaxed);
 
-        let is_running = self.is_running.clone();
+        let threads_running = self.threads_running.clone();
 
         self.rx_thread = Some(thread::spawn(move || {
-            while is_running.load(Ordering::Relaxed) {
-
+            while threads_running.load(Ordering::Relaxed) {
+                std::thread::sleep(std::time::Duration::from_millis(900));
             }
         }));
-        
 
-        let is_running = self.is_running.clone();
+
+        let threads_running = self.threads_running.clone();
         self.tx_thread = Some(thread::spawn(move || {
-            while is_running.load(Ordering::Relaxed) {
-
+            while threads_running.load(Ordering::Relaxed) {
+                std::thread::sleep(std::time::Duration::from_millis(850));
             }
         }));
+
         Ok(())
     }
 
     pub fn stop_daemon(&mut self) -> Result<(), String> {
-        if !self.is_running.load(Ordering::Relaxed) {
+        if !self.threads_running.load(Ordering::Relaxed) {
             return Err("Thread isn't started".to_owned());
         }
 
-        self.is_running.store(false, Ordering::Relaxed);
-        // self.tx_thread.as_ref().unwrap().join();
-        // self.rx_thread.as_ref().unwrap().join();
+        self.threads_running.store(false, Ordering::Relaxed);
 
         Ok(())
     }
