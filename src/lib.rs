@@ -56,6 +56,7 @@ impl BleuIO {
         if self.threads_running.load(Ordering::Relaxed) {
             return Err("Thread already started".to_owned());
         }
+        println!("Starting daemon");
 
         self.threads_running.store(true, Ordering::Relaxed);
 
@@ -63,16 +64,20 @@ impl BleuIO {
 
         self.rx_thread = Some(thread::spawn(move || {
             while threads_running.load(Ordering::Relaxed) {
+                println!("rx running");
                 std::thread::sleep(std::time::Duration::from_millis(900));
             }
+            println!("Ending rx thread");
         }));
 
 
         let threads_running = self.threads_running.clone();
         self.tx_thread = Some(thread::spawn(move || {
             while threads_running.load(Ordering::Relaxed) {
+                println!("tx running");
                 std::thread::sleep(std::time::Duration::from_millis(850));
             }
+            println!("Ending tx thread");
         }));
 
         Ok(())
@@ -82,8 +87,11 @@ impl BleuIO {
         if !self.threads_running.load(Ordering::Relaxed) {
             return Err("Thread isn't started".to_owned());
         }
+        println!("Stopping daemon");
 
         self.threads_running.store(false, Ordering::Relaxed);
+        self.tx_thread.take().expect("tx_take failed").join().expect("Could not join tx thread");
+        self.rx_thread.take().expect("rx_take failed").join().expect("Could not join rx thread");
 
         Ok(())
     }
