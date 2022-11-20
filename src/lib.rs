@@ -18,7 +18,6 @@ use std::thread;
 pub struct BleuIO {
     serial: Arc<Mutex<SystemPort>>,
     pub port: String,
-    pub baudrate: serial::core::BaudRate,
     pub timeout: u64,
     pub debug: bool,
 
@@ -37,7 +36,6 @@ impl BleuIO {
         BleuIO {
             serial: Arc::new(Mutex::new(serial::open(port).unwrap())),
             port: port.to_owned(),
-            baudrate: serial::Baud57600,
             timeout,
             debug,
             threads_running: Arc::new(AtomicBool::new(false)),
@@ -58,7 +56,7 @@ impl BleuIO {
             .lock()
             .unwrap()
             .reconfigure(&|settings| {
-                settings.set_baud_rate(self.baudrate)?;
+                settings.set_baud_rate(serial::Baud57600)?;
                 settings.set_char_size(serial::Bits8);
                 settings.set_parity(serial::ParityNone);
                 settings.set_stop_bits(serial::Stop1);
